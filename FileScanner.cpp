@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <sstream>
 
 Detect FileScanner::Scan(const fs::path& filepath) {
     switch (searchMode) {
@@ -36,10 +37,14 @@ Detect FileScanner::simpleSearch(const fs::path& filepath) {
 
 Detect FileScanner::ahoCorasickSearch(const fs::path& filepath) {
     assert(searchMode == SearchMode::AhoCorasick);
+//    std::ifstream infile(filepath);
+//    std::string str((std::istreambuf_iterator<char>(infile)),
+//                    std::istreambuf_iterator<char>());
+//    int patternId = ahoCorasick->Find(str);
     std::ifstream infile(filepath);
-    std::string str((std::istreambuf_iterator<char>(infile)),
-                    std::istreambuf_iterator<char>());
-    int patternId = ahoCorasick->Find(str);
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    int patternId = ahoCorasick->Find(buffer.str());
 
     infile.close();
     return (patternId >= 0) ? detectRequirements[patternId] : Detect{};

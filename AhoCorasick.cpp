@@ -34,8 +34,9 @@ int AhoCorasickSearch::Find(const std::string& str) {
     for (const auto& chr : str) {
         curIdx = moveToNext(curIdx, chr);
         for (int j = curIdx; j > 0; j = getShortcut(j)) {
-            if (bor[j].IsLeaf) {
-                return bor[j].PatternId;
+            const auto& vertex = bor[j];
+            if (vertex.IsLeaf) {
+                return vertex.PatternId;
             }
         }
     }
@@ -43,23 +44,21 @@ int AhoCorasickSearch::Find(const std::string& str) {
 }
 
 int AhoCorasickSearch::moveToNext(int curIdx, char symbol) {
-    auto cur = bor[curIdx];
-
     auto symbolIdx = char2idx(symbol);
-    if (cur.TransitionsCache[symbolIdx] != -1) {
-        return cur.TransitionsCache[symbolIdx];
+    if (bor[curIdx].TransitionsCache[symbolIdx] >= 0) {
+        return bor[curIdx].TransitionsCache[symbolIdx];
     }
 
     int transition;
-    if (cur.Children[symbolIdx] != -1) {
-        transition = cur.Children[symbolIdx];
+    if (bor[curIdx].Children[symbolIdx] >= 0) {
+        transition = bor[curIdx].Children[symbolIdx];
     }
     else if (curIdx == 0) {
         transition = 0;
     } else {
         transition = moveToNext(getSuffixNext(curIdx), symbol);
     }
-    cur.TransitionsCache[symbolIdx] = transition;
+    bor[curIdx].TransitionsCache[symbolIdx] = transition;
     return transition;
 }
 
@@ -77,19 +76,18 @@ int AhoCorasickSearch::getSuffixNext(int idx) {
 }
 
 int AhoCorasickSearch::getShortcut(int curIdx) {
-    auto cur = bor[curIdx];
-    if (cur.Shortcut != -1) {
-        return cur.Shortcut;
+    if (bor[curIdx].Shortcut != -1) {
+        return bor[curIdx].Shortcut;
     }
     int nextIdx = getSuffixNext(curIdx);
     if (bor[nextIdx].IsLeaf) {
-        cur.Shortcut = nextIdx;
+        bor[curIdx].Shortcut = nextIdx;
     } else if (nextIdx == 0) {
-        cur.Shortcut = 0;
+        bor[curIdx].Shortcut = 0;
     } else {
-        cur.Shortcut = getShortcut(nextIdx);
+        bor[curIdx].Shortcut = getShortcut(nextIdx);
     }
-    return cur.Shortcut;
+    return bor[curIdx].Shortcut;
 }
 
 

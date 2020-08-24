@@ -9,9 +9,8 @@ int main(int argc, char* argv[]) {
 
     const std::string path = argv[1];
 
-    DirectoryScanner scanner(path);
-    scanner.Scan();
-    scanner.PrintReport();
+    auto scanStat = DirectoryScanner().Scan(path);
+    scanStat.Report();
 
     return 0;
 }

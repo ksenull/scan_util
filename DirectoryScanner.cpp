@@ -23,7 +23,9 @@
 //    }
 //}
 
-void DirectoryScanner::Scan() {
+DirectoryStats DirectoryScanner::Scan(const std::string& directoryPath) {
+    DirectoryStats stats;
+
     const auto startTime = std::chrono::high_resolution_clock::now();
 
     for (auto &p: fs::directory_iterator(directoryPath)) {
@@ -32,12 +34,9 @@ void DirectoryScanner::Scan() {
         }
 //        jobs.emplace_back(p.path());
 
-        FileScanner fs(p.path());
-        fs.Scan(FileScanner::SearchMode::AhoCorasick);
-        nFilesScanned += 1;
-        nJsDetects += fs.GetDetects(DetectType::Js);
-        nUnixDetects += fs.GetDetects(DetectType::Unix);
-        nMacosDetects += fs.GetDetects(DetectType::Macos);
+        FileScanner fs(FileScanner::SearchMode::AhoCorasick);
+        auto detect = fs.Scan(p.path());
+        stats.AddDetect(detect);
     }
 
 //    threads.reserve(nThreads);
@@ -50,10 +49,30 @@ void DirectoryScanner::Scan() {
 //    }
 
     const auto endTime = std::chrono::high_resolution_clock::now();
-    executionTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    stats.executionTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    return stats;
 }
 
-void DirectoryScanner::PrintReport() const {
+void DirectoryStats::AddDetect(const Detect& detect) {
+    NFilesScanned += 1;
+    switch (detect.Type) {
+        case DetectType::Js:
+            NJsDetects += 1;
+            break;
+        case DetectType::Unix:
+            NUnixDetects += 1;
+            break;
+        case DetectType::Macos:
+            NMacosDetects += 1;
+            break;
+        case DetectType::None:
+            break;
+        default:
+            assert(false);
+    }
+}
+
+void DirectoryStats::Report() const {
     auto ms = executionTime;
     auto h = std::chrono::duration_cast<std::chrono::hours>(ms);
     ms -= h;
@@ -62,11 +81,11 @@ void DirectoryScanner::PrintReport() const {
     auto s = std::chrono::duration_cast<std::chrono::seconds>(ms);
     ms -= s;
     std::cout << "====== Scan result ======" << std::endl;
-    std::cout << "Processed files: " << nFilesScanned << std::endl;
-    std::cout << "JS detects: " << nJsDetects << std::endl;
-    std::cout << "Unix detects: " << nUnixDetects << std::endl;
-    std::cout << "macOS detects: " << nMacosDetects << std::endl;
-    std::cout << "Errors: " << nErrors << std::endl;
+    std::cout << "Processed files: " << NFilesScanned << std::endl;
+    std::cout << "JS detects: " << NJsDetects << std::endl;
+    std::cout << "Unix detects: " << NUnixDetects << std::endl;
+    std::cout << "macOS detects: " << NMacosDetects << std::endl;
+    std::cout << "Errors: " << NErrors << std::endl;
     std::cout << "Execution time: " << std::setw(2) << std::setfill('0') << h.count() << ":" <<
                                        std::setw(2) << std::setfill('0') << m.count() << ":" <<
                                        std::setw(2) << std::setfill('0') << s.count() << " " <<

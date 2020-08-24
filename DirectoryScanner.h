@@ -8,31 +8,29 @@
 #include <utility>
 #include <vector>
 
+#include "Detect.h"
+
 
 namespace fs = std::filesystem;
 
-class DirectoryScanner {
-public:
-    explicit DirectoryScanner(std::string  path): directoryPath(std::move(path)) {}
-
-    void Scan();
-
-    void PrintReport() const;
-
-private:
-    int nFilesScanned = 0;
-    int nJsDetects = 0;
-    int nUnixDetects = 0;
-    int nMacosDetects = 0;
-    int nErrors = 0;
-    unsigned int nThreads = std::thread::hardware_concurrency();
+struct DirectoryStats {
+    int NFilesScanned = 0;
+    int NJsDetects = 0;
+    int NUnixDetects = 0;
+    int NMacosDetects = 0;
+    int NErrors = 0;
 
     std::chrono::duration<long, std::ratio<1, 1000>> executionTime;
 
-    const std::string directoryPath;
+    void AddDetect(const Detect& detect);
 
-    std::mutex queueMutex;
-    std::vector<std::thread> threads;
-    std::vector<std::string> jobs;
+    void Report() const;
+};
 
+class DirectoryScanner {
+public:
+    DirectoryStats Scan(const std::string& path);
+
+private:
+    unsigned int nThreads = std::thread::hardware_concurrency();
 };

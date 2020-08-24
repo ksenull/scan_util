@@ -1,8 +1,11 @@
 #pragma once
 
+#include <climits>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+static const unsigned CharRange = CHAR_MAX - CHAR_MIN;
 
 class AhoCorasickSearch {
 public:
@@ -12,22 +15,27 @@ public:
         bor[0].Parent = 0;
     }
 
-    void AddPattern(const std::string& s);
-    void Find(const std::string& s);
+    void AddPattern(const std::string& s, int patternId);
+    int Find(const std::string& s);
 private:
     struct Vertex {
     public:
         bool IsLeaf = false;
         char Symbol{};
+        int PatternId = -1;
         int Parent = -1;
         int SuffixNext = -1;
         int Shortcut = -1;
-        std::unordered_map<char, int> Children;
-        std::unordered_map<char, int> TransitionsCache;
-//    string Str;
+        int Children[CharRange];
+        int TransitionsCache[CharRange];
+
+        Vertex() {
+            memset(&Children, -1,  CharRange * sizeof(int));
+            memset(&TransitionsCache, -1, CharRange * sizeof(int));
+        }
     };
 
-    int moveToNext(int idx, char c);
+    int moveToNext(int idx, char symbol);
     int getSuffixNext(int idx);
     int getShortcut(int idx);
 

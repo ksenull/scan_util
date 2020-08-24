@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "Detect.h"
+#include "AhoCorasick.h"
 
 namespace fs = std::filesystem;
 
@@ -17,21 +19,29 @@ public:
         Simple,
         AhoCorasick
     };
-    explicit FileScanner(const fs::path& _filepath): filepath(_filepath) {}
-
-    void Scan(SearchMode mode = SearchMode::Simple);
-
-    int GetDetects(DetectType type) const {
-        if (detect.has_value() && detect.value().Type == type) {
-            return 1;
+    explicit FileScanner(SearchMode mode = SearchMode::Simple) : searchMode(mode) {
+        switch (searchMode) {
+            case SearchMode::Simple:
+                break;
+            case SearchMode::AhoCorasick:
+                ahoCorasick = AhoCorasickSearch();
+                for (const auto& d: DetectTypeToDetect) {
+                    ahoCorasick->AddPattern(d.second.Pattern, detectRequirements.size());
+                    detectRequirements.emplace_back(d.second);
+                }
+                break;
+            default:
+                assert(false);
         }
-        return 0;
     }
-private:
-    void simpleSearch();
-    void ahoCorasickSearch();
+    Detect Scan(const fs::path& filepath);
 
-    fs::path filepath;
-    std::optional<Detect> detect;
+private:
+    Detect simpleSearch(const fs::path& filepath);
+    Detect ahoCorasickSearch(const fs::path& filepath);
+
+    SearchMode searchMode;
+    std::optional<AhoCorasickSearch> ahoCorasick;
+    std::vector<Detect> detectRequirements;
 };
 

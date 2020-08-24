@@ -4,45 +4,43 @@
 #include <cassert>
 #include <fstream>
 
-void FileScanner::Scan(FileScanner::SearchMode mode) {
-    switch (mode) {
+Detect FileScanner::Scan(const fs::path& filepath) {
+    switch (searchMode) {
         case FileScanner::SearchMode::Simple:
-            simpleSearch();
-            break;
+            return simpleSearch(filepath);
         case FileScanner::SearchMode::AhoCorasick:
-            ahoCorasickSearch();
-            break;
+            return ahoCorasickSearch(filepath);
         default:
             assert(false);
     }
 }
 
-void FileScanner::simpleSearch() {
+Detect FileScanner::simpleSearch(const fs::path& filepath) {
+    assert(searchMode == SearchMode::Simple);
+
     std::ifstream infile(filepath);
     for (std::string line; std::getline(infile, line); ) {
-        for (const auto& d: Detect::DetectTypeToRequirement) {
+        for (const auto& d: DetectTypeToDetect) {
             if (filepath.extension() != d.second.Extension) {
                 continue;
             }
             if (line.find(d.second.Pattern) != std::string::npos) {
-                detect = Detect {.Type = d.first};
-                return;
+                auto detect = Detect {.Type = d.first};
+                return detect;
             }
         }
     }
     infile.close();
+    return {};
 }
 
-void FileScanner::ahoCorasickSearch() {
-    AhoCorasickSearch search;
-    for (const auto& d: Detect::DetectTypeToRequirement) {
-        search.AddPattern(d.second.Pattern);
-    }
-
+Detect FileScanner::ahoCorasickSearch(const fs::path& filepath) {
+    assert(searchMode == SearchMode::AhoCorasick);
     std::ifstream infile(filepath);
-    for (std::string line; std::getline(infile, line);) {
-        search.Find(line);
-    }
+    std::string str((std::istreambuf_iterator<char>(infile)),
+                    std::istreambuf_iterator<char>());
+    int patternId = ahoCorasick->Find(str);
 
     infile.close();
+    return (patternId >= 0) ? detectRequirements[patternId] : Detect{};
 }

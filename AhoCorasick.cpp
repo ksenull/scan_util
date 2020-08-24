@@ -6,57 +6,60 @@
 
 #include <iostream>
 
-
-void AhoCorasickSearch::AddPattern(const std::string& s) {
-    int curIdx = 0;
-    for (char c : s) {
-        auto&& v = bor[curIdx];
-        if (v.Children[c] == -1) {
-            Vertex tmp;
-            tmp.Parent = curIdx;
-            tmp.Symbol = c;
-            v.Children[c] = bor.size();
-            bor.emplace_back(tmp);
-        }
-        curIdx = v.Children[c];
-    }
-    bor[curIdx].IsLeaf = true;
-//    bor[curIdx].str = s;
+inline unsigned char char2idx(char c) {
+    return c - CHAR_MIN;
 }
 
-void AhoCorasickSearch::Find(const std::string& s) {
+void AhoCorasickSearch::AddPattern(const std::string& s, int patternId) {
     int curIdx = 0;
-    for (auto i = 0U; i < s.length(); i++) {
-        curIdx = moveToNext(curIdx, s[i]);
-//        cout << "Move to " << bor[curIdx].str << " with " << s[i] << endl;
+    for (char c : s) {
+        auto symbolIdx = char2idx(c);
+        if (bor[curIdx].Children[symbolIdx] != -1) {
+            curIdx = bor[curIdx].Children[symbolIdx];
+            continue;
+        }
+        Vertex tmp;
+        tmp.Parent = curIdx;
+        tmp.Symbol = c;
+        bor.emplace_back(tmp);
+        bor[curIdx].Children[symbolIdx] = bor.size() - 1;
+        curIdx = bor.size() - 1;
+    }
+    bor[curIdx].IsLeaf = true;
+    bor[curIdx].PatternId = patternId;
+}
+
+int AhoCorasickSearch::Find(const std::string& str) {
+    int curIdx = 0;
+    for (const auto& chr : str) {
+        curIdx = moveToNext(curIdx, chr);
         for (int j = curIdx; j > 0; j = getShortcut(j)) {
             if (bor[j].IsLeaf) {
-                std::cout << "Found pattern: " << std::endl; //<< bor[j].str;
-                return;
+                return bor[j].PatternId;
             }
         }
     }
+    return -1;
 }
 
-int AhoCorasickSearch::moveToNext(int curIdx, char c) {
+int AhoCorasickSearch::moveToNext(int curIdx, char symbol) {
     auto cur = bor[curIdx];
 
-    auto transitionIt = cur.TransitionsCache.find(c);
-    if (transitionIt != cur.TransitionsCache.end()) {
-        return transitionIt->second;
+    auto symbolIdx = char2idx(symbol);
+    if (cur.TransitionsCache[symbolIdx] != -1) {
+        return cur.TransitionsCache[symbolIdx];
     }
 
     int transition;
-    auto next = cur.Children.find(c);
-    if (next != cur.Children.end()) {
-        transition = next->second;
+    if (cur.Children[symbolIdx] != -1) {
+        transition = cur.Children[symbolIdx];
     }
     else if (curIdx == 0) {
         transition = 0;
     } else {
-        transition = moveToNext(getSuffixNext(curIdx), c);
+        transition = moveToNext(getSuffixNext(curIdx), symbol);
     }
-    cur.TransitionsCache[c] = transition;
+    cur.TransitionsCache[symbolIdx] = transition;
     return transition;
 }
 
@@ -79,7 +82,6 @@ int AhoCorasickSearch::getShortcut(int curIdx) {
         return cur.Shortcut;
     }
     int nextIdx = getSuffixNext(curIdx);
-    auto next = bor[nextIdx];
     if (bor[nextIdx].IsLeaf) {
         cur.Shortcut = nextIdx;
     } else if (nextIdx == 0) {

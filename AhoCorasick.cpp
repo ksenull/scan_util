@@ -29,13 +29,13 @@ void AhoCorasickSearch::AddPattern(const std::string& s, int patternId) {
     bor[curIdx].PatternId = patternId;
 }
 
-int AhoCorasickSearch::Find(const std::string& str) {
+int AhoCorasickSearch::Find(const std::string& str, const std::vector<bool>& allowedPatterns) {
     int curIdx = 0;
     for (const auto& chr : str) {
         curIdx = moveToNext(curIdx, chr);
         for (int j = curIdx; j > 0; j = getShortcut(j)) {
             const auto& vertex = bor[j];
-            if (vertex.IsLeaf) {
+            if (vertex.IsLeaf && allowedPatterns[vertex.PatternId]) {
                 return vertex.PatternId;
             }
         }

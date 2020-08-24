@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits>
+#include <cstring>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -16,7 +17,7 @@ public:
     }
 
     void AddPattern(const std::string& s, int patternId);
-    int Find(const std::string& s);
+    int Find(const std::string& s, const std::vector<bool>& allowedPatterns);
 private:
     struct Vertex {
     public:

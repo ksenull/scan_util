@@ -11,29 +11,24 @@ enum class DetectType {
     None
 };
 
+static const std::unordered_map<DetectType, std::pair<std::string, std::string>> DetectRules = {
+        {DetectType::Js, {"<script>evil_script()</script>", ".js"}},
+        {DetectType::Unix, {"rm -rf ~/Documents", ""}},
+        {DetectType::Macos, {"system(\"launchctl load /Library/LaunchAgents/com.malware.agent\")", ""}},
+        {DetectType::None, {"", ""}}
+};
 
 struct Detect {
 public:
     DetectType Type = DetectType::None;
-    std::string Pattern;
-    std::string Extension;
+
+    [[nodiscard]] std::string GetPattern() const {
+        return DetectRules.at(Type).first;
+    }
+
+    [[nodiscard]] std::string GetExtension() const {
+        return DetectRules.at(Type).second;
+    }
 };
 
 
-static std::unordered_map<DetectType, Detect> DetectTypeToDetect {
-        {DetectType::Js, Detect{
-                .Type = DetectType::Js,
-                .Pattern = "<script>evil_script()</script>",
-                .Extension = ".js"
-        }},
-        {DetectType::Unix, Detect{
-                .Type = DetectType::Unix,
-                .Pattern = "rm -rf ~/Documents",
-                .Extension = ""
-        }},
-        {DetectType::Macos, Detect{
-                .Type = DetectType::Macos,
-                .Pattern = "system(\"launchctl load /Library/LaunchAgents/com.malware.agent\")",
-                .Extension = ""
-        }}
-};;

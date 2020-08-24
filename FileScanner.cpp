@@ -19,15 +19,18 @@ Detect FileScanner::Scan(const fs::path& filepath) {
 Detect FileScanner::simpleSearch(const fs::path& filepath) {
     assert(searchMode == SearchMode::Simple);
 
+    std::vector<Detect> allowedDetects;
+    for (const auto& d: searchableDetects) {
+        if (filepath.extension() == d.GetExtension()) {
+            allowedDetects.emplace_back(d);
+        }
+    }
+
     std::ifstream infile(filepath);
     for (std::string line; std::getline(infile, line); ) {
-        for (const auto& d: DetectTypeToDetect) {
-            if (filepath.extension() != d.second.Extension) {
-                continue;
-            }
-            if (line.find(d.second.Pattern) != std::string::npos) {
-                auto detect = Detect {.Type = d.first};
-                return detect;
+        for (const auto& d: allowedDetects) {
+            if (line.find(d.GetPattern()) != std::string::npos) {
+                return d;
             }
         }
     }
@@ -37,15 +40,18 @@ Detect FileScanner::simpleSearch(const fs::path& filepath) {
 
 Detect FileScanner::ahoCorasickSearch(const fs::path& filepath) {
     assert(searchMode == SearchMode::AhoCorasick);
-//    std::ifstream infile(filepath);
-//    std::string str((std::istreambuf_iterator<char>(infile)),
-//                    std::istreambuf_iterator<char>());
-//    int patternId = ahoCorasick->Find(str);
     std::ifstream infile(filepath);
     std::stringstream buffer;
     buffer << infile.rdbuf();
-    int patternId = ahoCorasick->Find(buffer.str());
+
+    std::vector<bool> allowedDetects(searchableDetects.size(), false);
+    for (size_t i = 0; i < searchableDetects.size(); i++) {
+        if (filepath.extension() == searchableDetects[i].GetExtension()) {
+            allowedDetects[i] = true;
+        }
+    }
+    int patternId = ahoCorasick->Find(buffer.str(), allowedDetects);
 
     infile.close();
-    return (patternId >= 0) ? detectRequirements[patternId] : Detect{};
+    return (patternId >= 0) ? searchableDetects[patternId] : Detect{};
 }

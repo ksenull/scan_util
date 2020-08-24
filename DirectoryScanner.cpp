@@ -34,9 +34,13 @@ DirectoryStats DirectoryScanner::Scan(const std::string& directoryPath) {
         }
 //        jobs.emplace_back(p.path());
 
-        FileScanner fs(FileScanner::SearchMode::AhoCorasick);
-        auto detect = fs.Scan(p.path());
-        stats.AddDetect(detect);
+        try {
+            FileScanner fs(FileScanner::SearchMode::Simple);
+            auto detect = fs.Scan(p.path());
+            stats.AddDetect(detect);
+        } catch (...) {
+            stats.NErrors += 1;
+        }
     }
 
 //    threads.reserve(nThreads);

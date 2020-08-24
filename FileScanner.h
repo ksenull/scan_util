@@ -19,15 +19,15 @@ public:
         Simple,
         AhoCorasick
     };
+
     explicit FileScanner(SearchMode mode = SearchMode::Simple) : searchMode(mode) {
         switch (searchMode) {
             case SearchMode::Simple:
                 break;
             case SearchMode::AhoCorasick:
                 ahoCorasick = AhoCorasickSearch();
-                for (const auto& d: DetectTypeToDetect) {
-                    ahoCorasick->AddPattern(d.second.Pattern, detectRequirements.size());
-                    detectRequirements.emplace_back(d.second);
+                for (size_t i = 0; i < searchableDetects.size(); i++) {
+                    ahoCorasick->AddPattern(searchableDetects[i].GetPattern(), i);
                 }
                 break;
             default:
@@ -42,6 +42,10 @@ private:
 
     SearchMode searchMode;
     std::optional<AhoCorasickSearch> ahoCorasick;
-    std::vector<Detect> detectRequirements;
+    std::vector<Detect> searchableDetects {
+            Detect{.Type = DetectType::Js},
+            Detect{.Type = DetectType::Unix},
+            Detect{.Type = DetectType::Macos}
+    };
 };
 

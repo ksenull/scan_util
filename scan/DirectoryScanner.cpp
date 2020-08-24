@@ -1,8 +1,10 @@
 #include "DirectoryScanner.h"
 
 #include <iostream>
+#include <future>
 
 #include "FileScanner.h"
+#include "Detect.h"
 
 
 //int process_files(std::vector<std::string>* const files_p, std::mutex* const mutex_p)
@@ -28,29 +30,25 @@ DirectoryStats DirectoryScanner::Scan(const std::string& directoryPath) {
 
     const auto startTime = std::chrono::high_resolution_clock::now();
 
-    for (auto &p: fs::directory_iterator(directoryPath)) {
-        if (!p.is_regular_file()) {
-            continue;
+    const auto& directory_iterator = fs::directory_iterator(directoryPath);
+    std::vector<std::future<Detect>> futures;
+    std::for_each(fs::begin(directory_iterator), fs::end(directory_iterator), [&](const auto& entry){
+        if (!entry.is_regular_file()) {
+            return;
         }
-//        jobs.emplace_back(p.path());
-
+        futures.push_back(std::async(
+                std::launch::async, [](const auto& path) {
+                    FileScanner fs(FileScanner::SearchMode::AhoCorasick);
+                    return fs.Scan(path);
+                }, entry.path()));
+    });
+    for (auto& future: futures) {
         try {
-            FileScanner fs(FileScanner::SearchMode::Simple);
-            auto detect = fs.Scan(p.path());
-            stats.AddDetect(detect);
+            stats.AddDetect(future.get());
         } catch (...) {
             stats.NErrors += 1;
         }
     }
-
-//    threads.reserve(nThreads);
-//    for (auto t = 0U; t < nThreads; t++) {
-//        threads.emplace_back(process_files, &jobs, &queueMutex);
-//    }
-
-//    for (auto&& t: threads) {
-//        t.join();
-//    }
 
     const auto endTime = std::chrono::high_resolution_clock::now();
     stats.executionTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);

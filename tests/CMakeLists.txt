@@ -1,0 +1,1 @@
+add_test(TestSearch scan_util_test)

@@ -21,7 +21,7 @@ Detect FileScanner::simpleSearch(const fs::path& filepath) {
 
     std::vector<Detect> allowedDetects;
     for (const auto& d: searchableDetects) {
-        if (filepath.extension() == d.GetExtension()) {
+        if (d.GetExtension().empty() || filepath.extension() == d.GetExtension()) {
             allowedDetects.emplace_back(d);
         }
     }
@@ -46,7 +46,7 @@ Detect FileScanner::ahoCorasickSearch(const fs::path& filepath) {
 
     std::vector<bool> allowedDetects(searchableDetects.size(), false);
     for (size_t i = 0; i < searchableDetects.size(); i++) {
-        if (filepath.extension() == searchableDetects[i].GetExtension()) {
+        if (searchableDetects[i].GetExtension().empty() || filepath.extension() == searchableDetects[i].GetExtension()) {
             allowedDetects[i] = true;
         }
     }

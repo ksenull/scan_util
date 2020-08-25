@@ -9,4 +9,4 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
-add_executable(scan_util main.cpp scan/DirectoryScanner.cpp scan/DirectoryScanner.h scan/FileScanner.cpp scan/FileScanner.h scan/Detect.cpp scan/Detect.h scan/search/AhoCorasick.cpp scan/search/AhoCorasick.h)
+add_executable(scan_util main.cpp scan/DirectoryStats.cpp scan/DirectoryStats.h scan/FileScanner.cpp scan/FileScanner.h scan/Detect.h scan/search/AhoCorasick.cpp scan/search/AhoCorasick.h)

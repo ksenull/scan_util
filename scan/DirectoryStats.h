@@ -27,10 +27,4 @@ struct DirectoryStats {
     void Report() const;
 };
 
-class DirectoryScanner {
-public:
-    DirectoryStats Scan(const std::string& path);
-
-private:
-    unsigned int nThreads = std::thread::hardware_concurrency();
-};
+DirectoryStats ScanDirectory(const std::string& path);

@@ -1,53 +1,43 @@
-#include "DirectoryScanner.h"
+#include "DirectoryStats.h"
 
 #include <iostream>
 #include <future>
 
-#include "FileScanner.h"
 #include "Detect.h"
+#include "FileScanner.h"
 
 
-//int process_files(std::vector<std::string>* const files_p, std::mutex* const mutex_p)
-//{
-//    auto count = 0;
-//    while (true)
-//    {
-//        std::string next {};
-//        {
-//            const std::unique_lock<std::mutex> lck {*mutex_p};
-//            if (files_p->empty())  // nothing left to do
-//                return count;
-//            next = std::move(files_p->back());
-//            files_p->pop_back();
-//        }
-//        FileScanner fs(p.path());
-//        fs.Scan();
-//    }
-//}
-
-DirectoryStats DirectoryScanner::Scan(const std::string& directoryPath) {
+DirectoryStats ScanDirectory(const std::string& directoryPath) {
     DirectoryStats stats;
 
     const auto startTime = std::chrono::high_resolution_clock::now();
 
-    const auto& directory_iterator = fs::directory_iterator(directoryPath);
-    std::vector<std::future<Detect>> futures;
-    std::for_each(fs::begin(directory_iterator), fs::end(directory_iterator), [&](const auto& entry){
+//    std::vector<std::future<Detect>> futures;
+//    for (const auto& entry: fs::directory_iterator(directoryPath)) {
+//        if (!entry.is_regular_file()) {
+//            continue;
+//        }
+//        futures.push_back(std::async(
+//                std::launch::async, [](const auto& path) {
+//                    FileScanner fs(FileScanner::SearchMode::Simple);
+//                    return fs.Scan(path);
+//                }, entry.path()));
+//    }
+//    for (auto& future: futures) {
+//        try {
+//            stats.AddDetect(future.get());
+//        } catch (...) {
+//            stats.NErrors += 1;
+//        }
+//    }
+
+    for (const auto& entry: fs::directory_iterator(directoryPath)) {
         if (!entry.is_regular_file()) {
-            return;
+            continue;
         }
-        futures.push_back(std::async(
-                std::launch::async, [](const auto& path) {
-                    FileScanner fs(FileScanner::SearchMode::AhoCorasick);
-                    return fs.Scan(path);
-                }, entry.path()));
-    });
-    for (auto& future: futures) {
-        try {
-            stats.AddDetect(future.get());
-        } catch (...) {
-            stats.NErrors += 1;
-        }
+        FileScanner fs(FileScanner::SearchMode::Simple);
+        auto detect = fs.Scan(entry.path());
+        stats.AddDetect(detect);
     }
 
     const auto endTime = std::chrono::high_resolution_clock::now();

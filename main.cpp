@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "scan/DirectoryScanner.h"
+#include "scan/DirectoryStats.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 
     const std::string path = argv[1];
 
-    auto scanStat = DirectoryScanner().Scan(path);
+    auto scanStat = ScanDirectory(path);
     scanStat.Report();
 
     return 0;

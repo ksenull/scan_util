@@ -27,4 +27,4 @@ struct DirectoryStats {
     void Report() const;
 };
 
-DirectoryStats ScanDirectory(const std::string& path);
+DirectoryStats ScanDirectory(const std::string& path); // TODO: move to API

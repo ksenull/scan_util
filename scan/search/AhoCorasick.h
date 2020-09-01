@@ -27,11 +27,11 @@ private:
         int Parent = -1;
         int SuffixNext = -1;
         int Shortcut = -1;
-        int Children[CharRange];
+        int Children[CharRange];  // TODO std::array
         int TransitionsCache[CharRange];
 
         Vertex() {
-            memset(&Children, -1,  CharRange * sizeof(int));
+            memset(&Children, -1,  CharRange * sizeof(int));  // TODO: fill_n
             memset(&TransitionsCache, -1, CharRange * sizeof(int));
         }
     };

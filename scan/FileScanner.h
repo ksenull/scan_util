@@ -37,11 +37,11 @@ public:
     Detect Scan(const fs::path& filepath);
 
 private:
-    Detect simpleSearch(const fs::path& filepath);
-    Detect ahoCorasickSearch(const fs::path& filepath);
+    Detect simpleSearch(const fs::path& filepath); // TODO move to SearhDerived
+    Detect ahoCorasickSearch(const fs::path& filepath); // TODO move to SearhDerived
 
     SearchMode searchMode;
-    std::optional<AhoCorasickSearch> ahoCorasick;
+    std::optional<AhoCorasickSearch> ahoCorasick; // TODO BaseSearch*
     std::vector<Detect> searchableDetects {
             Detect{.Type = DetectType::Js},
             Detect{.Type = DetectType::Unix},

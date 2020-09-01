@@ -22,11 +22,11 @@ struct Detect {
 public:
     DetectType Type = DetectType::None;
 
-    [[nodiscard]] std::string GetPattern() const {
+    [[nodiscard]] std::string GetPattern() const {  // TODO: remove, needed only for inner mechanisms
         return DetectRules.at(Type).first;
     }
 
-    [[nodiscard]] std::string GetExtension() const {
+    [[nodiscard]] std::string GetExtension() const { // TODO: remove, needed only for inner mechanisms
         return DetectRules.at(Type).second;
     }
 };

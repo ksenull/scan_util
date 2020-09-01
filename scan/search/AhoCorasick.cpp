@@ -21,7 +21,7 @@ void AhoCorasickSearch::AddPattern(const std::string& s, int patternId) {
         Vertex tmp;
         tmp.Parent = curIdx;
         tmp.Symbol = c;
-        bor.emplace_back(tmp);
+        bor.emplace_back(tmp); // TODO: init list inside emplace
         bor[curIdx].Children[symbolIdx] = bor.size() - 1;
         curIdx = bor.size() - 1;
     }

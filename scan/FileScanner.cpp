@@ -40,9 +40,9 @@ Detect FileScanner::simpleSearch(const fs::path& filepath) {
 
 Detect FileScanner::ahoCorasickSearch(const fs::path& filepath) {
     assert(searchMode == SearchMode::AhoCorasick);
-    std::ifstream infile(filepath);
+    std::ifstream infile(filepath); // TODO: check if (!infile)
     std::stringstream buffer;
-    buffer << infile.rdbuf();
+    buffer << infile.rdbuf(); // TODO move to abstract ISearch::Search(stringstrem)
 
     std::vector<bool> allowedDetects(searchableDetects.size(), false);
     for (size_t i = 0; i < searchableDetects.size(); i++) {

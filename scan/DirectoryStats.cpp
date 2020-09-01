@@ -13,6 +13,7 @@ DirectoryStats ScanDirectory(const std::string& directoryPath) {
     const auto startTime = std::chrono::high_resolution_clock::now();
 
     std::vector<std::future<Detect>> futures;
+    // TODO check directory access
     for (const auto& entry: fs::directory_iterator(directoryPath)) {
         if (!entry.is_regular_file()) {
             continue;
